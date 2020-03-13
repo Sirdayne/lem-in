@@ -244,7 +244,8 @@
         let x = startFound.x;
         let y = startFound.y;
 
-        let range = Math.abs(endFound.x - startFound.x) / steps
+        let rangeX = Math.abs(endFound.x - startFound.x) / steps
+        let rangeY = Math.abs(endFound.y - startFound.y) / steps
     
         let step = 0
 
@@ -253,19 +254,18 @@
             setTimeout(() => {
                 if (endFound.y === startFound.y) {
                     y = startFound.y
-                    x = endFound.x > startFound.x ? x = x + range : x = x - range
+                    x = endFound.x > startFound.x ? x = x + rangeX : x = x - rangeX
                 } else if (endFound.x === startFound.x) {
                     x = startFound.x
-                    y = endFound.y > startFound.y ? y = y + range : y = y - range
+                    y = endFound.y > startFound.y ? y = y + rangeY : y = y - rangeY
                 } else {
                     let FACTOR = (endFound.y - startFound.y) / (endFound.x - startFound.x)
                     y = (x - startFound.x) * FACTOR + startFound.y;
-                    x = endFound.x > startFound.x ? x = x + range : x = x - range
+                    x = endFound.x > startFound.x ? x = x + rangeX : x = x - rangeX
                 }
                 lemin.setAttribute('cx', x * X_FACTOR);
                 lemin.setAttribute('cy', y * Y_FACTOR);
             }, time)
-            console.log(time)
         }
     }
 
@@ -304,6 +304,7 @@
                 moveLemin(name, start.name, room, TIME_STEP * step)
             } else { 
                 moveLemin(name, found.room, room, TIME_STEP * step)   
+                found.room = room
             }
         })
     })
