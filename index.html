@@ -227,6 +227,8 @@
         newLemin.setAttribute('cy', found.y * Y_FACTOR);
         newLemin.setAttribute('r', 10);
         newLemin.setAttribute('fill', color);
+        newLemin.setAttribute('stroke', '#fff');
+        newLemin.setAttribute('stroke-width', '2');
         container.appendChild(newLemin);
     }
 
@@ -236,35 +238,48 @@
         let lemin = document.getElementById(nameLemin)
         let startFound = rooms.find(room => room.name === startName)
         let endFound = rooms.find(room => room.name === endName)
-        let FACTOR = (endFound.y - startFound.y) / (endFound.x - startFound.x)
-        if (FACTOR === Infinity || FACTOR === -Infinity) {
-            FACTOR = 0
-        }
 
         let steps = 10;
         let timelapse = TIME_STEP / steps;
         let x = startFound.x;
         let y = startFound.y;
 
-        let range = Math.abs(endFound.x - startFound.x)
-
-        lemin.setAttribute('cx', x);
-        lemin.setAttribute('cy', y);
+        let range = Math.abs(endFound.x - startFound.x) / steps
     
-        for (let i = 1; i <= steps; i++) {
+        let step = 0
+
+        for (let i = 0; i < steps; i++) {
+            time = time + timelapse
             setTimeout(() => {
-                if (endFound.x > startFound.x) {
-                    x = x + range
+                if (endFound.y === startFound.y) {
+                    y = startFound.y
+                    x = endFound.x > startFound.x ? x = x + range : x = x - range
+                } else if (endFound.x === startFound.x) {
+                    x = startFound.x
+                    y = endFound.y > startFound.y ? y = y + range : y = y - range
                 } else {
-                    x = x - range
+                    let FACTOR = (endFound.y - startFound.y) / (endFound.x - startFound.x)
+                    y = (x - startFound.x) * FACTOR + startFound.y;
+                    x = endFound.x > startFound.x ? x = x + range : x = x - range
                 }
-                y = (x - startFound.x) * FACTOR + startFound.y;
                 lemin.setAttribute('cx', x * X_FACTOR);
                 lemin.setAttribute('cy', y * Y_FACTOR);
-            }, time + timelapse * i)
-            console.log(time + timelapse * i)
+            }, time)
+            console.log(time)
         }
     }
+
+    // function moveLemin (nameLemin, startName, endName, time) {
+    //     let lemin = document.getElementById(nameLemin)
+    //     let endFound = rooms.find(room => room.name === endName)
+
+    //     let x = endFound.x;
+    //     let y = endFound.y;
+    //     setTimeout(() => {
+    //         lemin.setAttribute('cx', x * X_FACTOR)
+    //         lemin.setAttribute('cy', y * Y_FACTOR)
+    //     }, TIME_STEP * step)
+    // }
 
     let lemins = []
 
@@ -287,7 +302,7 @@
                 lemins.push(lemin)
                 createLemin(name, color)
                 moveLemin(name, start.name, room, TIME_STEP * step)
-            } else {
+            } else { 
                 moveLemin(name, found.room, room, TIME_STEP * step)   
             }
         })
