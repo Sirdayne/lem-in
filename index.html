@@ -6,9 +6,13 @@
     <title>lem-in</title>
 </head>
 <body>
+    <div class="stats">
+        <h1>Lem-in</h1>
+    </div>
     <svg id="container" height="550" width="750"></svg>
     <div class="controls">
-        <button onclick="START_LEMIN()">RUN</button>
+        <button class="btn" onclick="FETCH()">FETCH</button>
+        <button class="btn" onclick="START_LEMIN()">RUN</button>
     </div>
 </body>
 </html>
@@ -155,6 +159,34 @@
         },
     ]
 
+    let results = [
+        ['L1-3', 'L2-2'],
+        ['L1-4', 'L2-5', 'L3-3'],
+        ['L1-0', 'L2-6', 'L3-4'],
+        ['L2-0', 'L3-0']
+    ]
+
+    results = [
+        'L1-t L2-h L3-0',
+        'L1-E L2-A L3-o L4-t L5-h L6-0',
+        'L1-a L2-c L3-n L4-E L5-A L6-o L7-t L8-h L9-0',
+        'L1-m L2-k L3-e L4-a L5-c L6-n L7-E L8-A L9-o L10-t',
+        'L1-end L2-end L3-end L4-m L5-k L6-e L7-a L8-c L9-n L10-E',
+        'L4-end L5-end L6-end L7-m L8-k L9-e L10-a',
+        'L7-end L8-end L9-end L10-m',
+        'L10-end'
+    ]
+
+    function FETCH () {
+        fetch('https://jsonplaceholder.typicode.com/todos/1')
+            .then(response => response.json())
+            .then(json => console.log(json))
+
+        fetch('https://jsonplaceholder.typicode.com/todos/2')
+            .then(response => response.json())
+            .then(json => console.log(json))
+    }
+
     const SVGNS = "http://www.w3.org/2000/svg"
     let container = document.getElementById('container');
 
@@ -202,24 +234,6 @@
             addRoom(room.x, room.y, room.name, room.links)
         })
     }
-
-    let results = [
-        ['L1-3', 'L2-2'],
-        ['L1-4', 'L2-5', 'L3-3'],
-        ['L1-0', 'L2-6', 'L3-4'],
-        ['L2-0', 'L3-0']
-    ]
-
-    results = [
-        'L1-t L2-h L3-0',
-        'L1-E L2-A L3-o L4-t L5-h L6-0',
-        'L1-a L2-c L3-n L4-E L5-A L6-o L7-t L8-h L9-0',
-        'L1-m L2-k L3-e L4-a L5-c L6-n L7-E L8-A L9-o L10-t',
-        'L1-end L2-end L3-end L4-m L5-k L6-e L7-a L8-c L9-n L10-E',
-        'L4-end L5-end L6-end L7-m L8-k L9-e L10-a',
-        'L7-end L8-end L9-end L10-m',
-        'L10-end'
-    ]
 
     let start = rooms.find(room => room.status === 'start')
     let end = rooms.find(room => room.status === 'end')
@@ -279,19 +293,8 @@
         }
     }
 
-    // function moveLemin (nameLemin, startName, endName, time) {
-    //     let lemin = document.getElementById(nameLemin)
-    //     let endFound = rooms.find(room => room.name === endName)
-
-    //     let x = endFound.x;
-    //     let y = endFound.y;
-    //     setTimeout(() => {
-    //         lemin.setAttribute('cx', x * X_FACTOR)
-    //         lemin.setAttribute('cy', y * Y_FACTOR)
-    //     }, TIME_STEP * step)
-    // }
-
     let lemins = []
+    let step = 0
 
     function RESET_LEMIN() {
         lemins.forEach(lemin => {
@@ -304,8 +307,6 @@
 
     const newResults = []
     results.forEach(res => newResults.push(res.split(' ')))
-
-    let step = 0
 
     function START_LEMIN() {
         RESET_LEMIN()
@@ -334,46 +335,6 @@
 
 </script>
 
-<!-- <script>
-
-    let lemins = [
-        [1, 2, 4, 6, 9],
-        [3, 5, 8, null, null],
-        [7, 10, null, null, null]
-    ]
-
-    let rooms = [
-        [null, null, 7, 4, 1],
-        [null, 12, 8, 5, 2],
-        [13, 14, 9, 6, 3]
-    ]
-
-    let out = []
-    let paths = ''
-
-    const SIZE = lemins.length;
-    const LENGTH = lemins[0].length;
-
-    for (var step = 1; step <= LENGTH*2; step++) {
-        paths = ''
-        for(var leminStep = 0; leminStep < step; leminStep++) {
-            for (var i = 0; i < SIZE; i++) {
-                if (lemins[i][leminStep] && rooms[i][LENGTH - step + leminStep]) {
-                    let path = `L${lemins[i][leminStep]}-${rooms[i][LENGTH - step + leminStep]} `
-                    paths += path
-                }
-
-            }
-        }
-        paths = paths.slice(0, -1)
-        if (paths) {
-         out.push(paths)
-        }
-    }
-    console.log(out)
-
-</script> -->
-
 <style>
     body { 
         background: #000;
@@ -384,5 +345,29 @@
     #container {
         margin-top: 50px;
         border: 1px solid #fff;
+    }
+    .stats {
+        color: #fff;
+        padding: 50px;
+        max-width: 300px;
+    }
+    .results {
+        word-break: break-all;
+    }
+    .controls {
+        padding: 50px;
+    }
+    .controls .btn {
+        display: block;
+        margin: 2px 0;
+        min-width: 100px;
+        cursor: pointer;
+        border: 1px solid #fff;
+        background: rgba(0,0,0,0);
+        color: #fff;
+    }
+    .controls .btn:hover {
+        background: #fff;
+        color: #000;
     }
 </style>
