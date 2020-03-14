@@ -7,6 +7,9 @@
 </head>
 <body>
     <svg id="container" height="550" width="750"></svg>
+    <div class="controls">
+        <button onclick="START_LEMIN()">RUN</button>
+    </div>
 </body>
 </html>
 
@@ -221,20 +224,21 @@
     let start = rooms.find(room => room.status === 'start')
     let end = rooms.find(room => room.status === 'end')
 
-    function createLemin (nameLemin, color) {
+    function createLemin (nameLemin) {
         let newLemin = document.createElementNS(SVGNS, 'circle');
         newLemin.setAttribute('id', nameLemin);
         let found = rooms.find(room => room.name === start.name)
         newLemin.setAttribute('cx', found.x * X_FACTOR);
         newLemin.setAttribute('cy', found.y * Y_FACTOR);
         newLemin.setAttribute('r', 10);
-        newLemin.setAttribute('fill', color);
+        newLemin.setAttribute('fill', "#"+((1<<24)*Math.random()|0).toString(16));
         newLemin.setAttribute('stroke', '#fff');
         newLemin.setAttribute('stroke-width', '2');
+        newLemin.setAttribute('class', 'lemins')
         container.appendChild(newLemin);
     }
 
-    const TIME_STEP = 900
+    const TIME_STEP = 1100
 
     function moveLemin (nameLemin, startName, endName, time) {
         let lemin = document.getElementById(nameLemin)
@@ -289,15 +293,24 @@
 
     let lemins = []
 
+    function RESET_LEMIN() {
+        lemins.forEach(lemin => {
+            let node = document.getElementById(lemin.name)
+            node.remove()
+        })
+        lemins = []
+        step = 0
+    }
+
     const newResults = []
     results.forEach(res => newResults.push(res.split(' ')))
 
     let step = 0
 
     function START_LEMIN() {
+        RESET_LEMIN()
         newResults.forEach(positions => {
             step++;
-            let color = "#"+((1<<24)*Math.random()|0).toString(16);
             positions.forEach(pos => {
                 let [ name, room ] = pos.split('-')
                 let found = lemins.find(lemin => lemin.name === name)
@@ -307,7 +320,7 @@
                         room: room
                     }
                     lemins.push(lemin)
-                    createLemin(name, color)
+                    createLemin(name)
                     moveLemin(name, start.name, room, TIME_STEP * step)
                 } else { 
                     moveLemin(name, found.room, room, TIME_STEP * step)   
@@ -318,7 +331,6 @@
     }
 
     DRAW_MAP()
-    START_LEMIN()
 
 </script>
 
