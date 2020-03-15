@@ -1,4 +1,4 @@
-[
+let results = [
     "L1-t L2-h L3-0",
     "L1-E L2-A L3-o L4-t L5-h L6-0",
     "L1-a L2-c L3-n L4-E L5-A L6-o L7-t L8-h L9-0",

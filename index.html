@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>lem-in</title>
+    <script src="results2.js"></script>
+    <script src="rooms2.js"></script>
 </head>
 <body>
     <h1>Lem-in</h1>
@@ -58,11 +60,13 @@
         Y_FACTOR = HEIGHT ? SVG_HEIGHT / HEIGHT : 0;
     }
 
-    let rooms = []
-    let results = []
+    // let rooms = []
+    // let results = []
     let newResults = []
-    let start
-    let end
+    console.log(rooms, results)
+    results.forEach(res => newResults.push(res.split(' ')))
+    let start = rooms.find(room => room.status === 'start')
+    let end = rooms.find(room => room.status === 'end')
 
     function setOutput (fileContent) {
         let outContent = ""
@@ -231,6 +235,8 @@
     }
 
     function START_LEMIN() {
+        SET_FACTORS()
+        DRAW_MAP()
         RESET_LEMIN()
         CLEAR_TIMEOUTS()
         SET_TIME_STEPS()

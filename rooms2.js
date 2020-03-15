@@ -1,4 +1,4 @@
-[
+let rooms = [
     {
         "name": "start",
         "x": 1,
