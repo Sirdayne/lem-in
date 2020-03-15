@@ -6,219 +6,141 @@
     <title>lem-in</title>
 </head>
 <body>
-    <div class="stats">
-        <h1>Lem-in</h1>
-    </div>
-    <svg id="container" height="550" width="750"></svg>
-    <div class="controls">
-        <button class="btn" onclick="FETCH()">FETCH</button>
-        <button class="btn" onclick="START_LEMIN()">RUN</button>
+    <h1>Lem-in</h1>
+    <div class="main">
+        <svg id="container" height="600" width="800"></svg>
+        <div class="controls">
+            <button class="btn" onclick="FETCH()">FETCH</button>
+            <button class="btn" onclick="START_LEMIN()">RUN</button>
+            <div>FileName:</div>
+            <input type="text" id="input-file-name" placeholder="Filename..." value="example07.txt">
+            <div>Time of step(ms):</div>
+            <input type="text" id="time-step" placeholder="Time of step..." value="1000">
+            <div>FPS:</div>
+            <input type="text" id="steps" placeholder="FPS..." value="60">
+        </div>
+        <div class="stats">
+            <pre id="output"></pre>
+        </div>
     </div>
 </body>
 </html>
 
 <script>
-    let rooms = [
-        {
-            name: '1',
-            x: 23,
-            y: 3,
-            links: ['3'],
-            status: 'start'
-        },
-        {
-            name: '2',
-            x: 16,
-            y: 7,
-            links: ['1']
-        },
-        {
-            name: '3',
-            x: 16,
-            y: 3,
-            links: ['5']
-        },
-        {
-            name: '4',
-            x: 16,
-            y: 5,
-            links: ['3', '2']
-        },
-        {
-            name: '5',
-            x: 9,
-            y: 3,
-            links: ['2']
-        },
-        {
-            name: '6',
-            x: 1,
-            y: 5,
-            links: ['5']
-        },
-        {
-            name: '7',
-            x: 4,
-            y: 8,
-            links: ['6', '2', '4']
-        },
-        {
-            name: '0',
-            x: 9,
-            y: 5,
-            links: ['4', '6'],
-            status: 'end'
-        }
-    ]
-
-    rooms = [
-        {
-            name: 'start',
-            x: 1,
-            y: 6,
-            links: ['t', 'h', '0'],
-            status: 'start'
-        },
-        {
-            name: '0',
-            x: 4,
-            y: 8,
-            links: ['o'],
-        },
-        {
-            name: 'o',
-            x: 6,
-            y: 8,
-            links: ['n'],
-        },
-        {
-            name: 'n',
-            x: 6,
-            y: 6,
-            links: ['e', 'm'],
-        },
-        {
-            name: 'e',
-            x: 8,
-            y: 4,
-            links: ['end'],
-        },
-        {
-            name: 't',
-            x: 1,
-            y: 9,
-            links: ['E'],
-        },
-        {
-            name: 'E',
-            x: 5,
-            y: 9,
-            links: ['a'],
-        },
-        {
-            name: 'a',
-            x: 8,
-            y: 9,
-            links: ['m'],
-        },
-        {
-            name: 'm',
-            x: 8,
-            y: 6,
-            links: ['end'],
-        },
-        {
-            name: 'h',
-            x: 4,
-            y: 6,
-            links: ['A', 'n'],
-        },
-        {
-            name: 'A',
-            x: 5,
-            y: 2,
-            links: ['c'],
-        },
-        {
-            name: 'c',
-            x: 8,
-            y: 1,
-            links: ['k'],
-        },
-        {
-            name: 'k',
-            x: 11,
-            y: 2,
-            links: ['end'],
-        },
-        {
-            name: 'end',
-            x: 11,
-            y: 6,
-            status: 'end'
-        },
-    ]
-
-    let results = [
-        ['L1-3', 'L2-2'],
-        ['L1-4', 'L2-5', 'L3-3'],
-        ['L1-0', 'L2-6', 'L3-4'],
-        ['L2-0', 'L3-0']
-    ]
-
-    results = [
-        'L1-t L2-h L3-0',
-        'L1-E L2-A L3-o L4-t L5-h L6-0',
-        'L1-a L2-c L3-n L4-E L5-A L6-o L7-t L8-h L9-0',
-        'L1-m L2-k L3-e L4-a L5-c L6-n L7-E L8-A L9-o L10-t',
-        'L1-end L2-end L3-end L4-m L5-k L6-e L7-a L8-c L9-n L10-E',
-        'L4-end L5-end L6-end L7-m L8-k L9-e L10-a',
-        'L7-end L8-end L9-end L10-m',
-        'L10-end'
-    ]
-
-    function FETCH () {
-        fetch('https://jsonplaceholder.typicode.com/todos/1')
-            .then(response => response.json())
-            .then(json => console.log(json))
-
-        fetch('https://jsonplaceholder.typicode.com/todos/2')
-            .then(response => response.json())
-            .then(json => console.log(json))
-    }
 
     const SVGNS = "http://www.w3.org/2000/svg"
     let container = document.getElementById('container');
 
+    let timeouts = []
+
     let WIDTH = 0
     let HEIGHT = 0
 
-    rooms.forEach(room => {
-        WIDTH = room.x > WIDTH ? room.x : WIDTH
-        HEIGHT = room.y > HEIGHT ? room.y : HEIGHT
-    })
-
     const SVG_WIDTH = 700
     const SVG_HEIGHT = 500
-    const X_FACTOR = WIDTH ? SVG_WIDTH / WIDTH : 0;
-    const Y_FACTOR = HEIGHT ? SVG_HEIGHT / HEIGHT : 0;
+    const SVG_OFFSET = 50
+    let X_FACTOR
+    let Y_FACTOR
+
+    function CLEAR_TIMEOUTS() { 
+        timeouts.forEach(timeout => {
+            clearTimeout(timeout)
+        })
+        timeouts = []
+    } 
+
+    function SET_FACTORS () {
+        rooms.forEach(room => {
+            WIDTH = room.x > WIDTH ? room.x : WIDTH
+            HEIGHT = room.y > HEIGHT ? room.y : HEIGHT
+        })
+        X_FACTOR = WIDTH ? SVG_WIDTH / WIDTH : 0;
+        Y_FACTOR = HEIGHT ? SVG_HEIGHT / HEIGHT : 0;
+    }
+
+    let rooms = []
+    let results = []
+    let newResults = []
+    let start
+    let end
+
+    function setOutput (fileContent) {
+        let outContent = ""
+        fileContent.forEach(item => {
+            outContent += item + "\n"
+        })
+        outContent += "\n"
+        results.forEach(item => {
+            outContent += item + "\n"
+        })
+        let output = document.getElementById('output')
+        output.innerHTML = outContent
+    }
+
+    function RESET_DATA () {
+        rooms = []
+        results = []
+        newResults = []
+    }
+
+    let TIME_STEP
+    let STEPS
+
+    function setData (json) {
+        RESET_DATA()
+        results = json.Results
+        results.forEach(res => newResults.push(res.split(' ')))
+        rooms = json.Rooms
+        rooms = rooms.map((room, index) => {
+            return {
+                x: room.X,
+                y: room.Y,
+                name: room.Name,
+                links: room.Links,
+                status: index === 0 ? 'start' : index === rooms.length - 1 ? "end" : null
+            }
+        })
+        setOutput(json.FileContent)
+        start = rooms.find(room => room.status === 'start')
+        end = rooms.find(room => room.status === 'end')
+        SET_FACTORS()
+        DRAW_MAP()
+    }
+
+    function REDRAW_MAP () {
+        container.innerHTML = ""
+    }
+
+    function FETCH () {
+        REDRAW_MAP()
+        let fileName = document.getElementById('input-file-name')
+        let body = {
+            filename: fileName.value
+        }
+        fetch('/results', { method: 'POST', body: JSON.stringify(body) })
+            .then(response => response.json())
+            .then(json => {
+               setData(json)
+            })
+    }
 
     function addLink(x1, y1, x2, y2) {
         let newLink = document.createElementNS(SVGNS, 'line');
-        newLink.setAttribute('x1', x1 * X_FACTOR);
-        newLink.setAttribute('y1', y1 * Y_FACTOR);
-        newLink.setAttribute('x2', x2 * X_FACTOR);
-        newLink.setAttribute('y2', y2 * Y_FACTOR);
+        newLink.setAttribute('x1', x1 * X_FACTOR + SVG_OFFSET);
+        newLink.setAttribute('y1', y1 * Y_FACTOR + SVG_OFFSET);
+        newLink.setAttribute('x2', x2 * X_FACTOR + SVG_OFFSET);
+        newLink.setAttribute('y2', y2 * Y_FACTOR + SVG_OFFSET);
         newLink.setAttribute('style', 'stroke:#424242; stroke-width: 5;');
         container.appendChild(newLink);
     }
 
     function addRoom(x, y, name, links) {
         let newRoom = document.createElementNS(SVGNS, 'circle');
-        newRoom.setAttribute('cx', x * X_FACTOR);
-        newRoom.setAttribute('cy', y * Y_FACTOR);
+        newRoom.setAttribute('cx', x * X_FACTOR + SVG_OFFSET);
+        newRoom.setAttribute('cy', y * Y_FACTOR + SVG_OFFSET);
         newRoom.setAttribute('r', 15);
         newRoom.setAttribute('fill', '#424242');
+        newRoom.setAttribute('class', 'rooms')
         container.appendChild(newRoom);
         
         if (links) {
@@ -235,15 +157,12 @@
         })
     }
 
-    let start = rooms.find(room => room.status === 'start')
-    let end = rooms.find(room => room.status === 'end')
-
     function createLemin (nameLemin) {
         let newLemin = document.createElementNS(SVGNS, 'circle');
         newLemin.setAttribute('id', nameLemin);
         let found = rooms.find(room => room.name === start.name)
-        newLemin.setAttribute('cx', found.x * X_FACTOR);
-        newLemin.setAttribute('cy', found.y * Y_FACTOR);
+        newLemin.setAttribute('cx', found.x * X_FACTOR + SVG_OFFSET);
+        newLemin.setAttribute('cy', found.y * Y_FACTOR + SVG_OFFSET);
         newLemin.setAttribute('r', 10);
         newLemin.setAttribute('fill', "#"+((1<<24)*Math.random()|0).toString(16));
         newLemin.setAttribute('stroke', '#fff');
@@ -252,26 +171,21 @@
         container.appendChild(newLemin);
     }
 
-    const TIME_STEP = 1100
-
     function moveLemin (nameLemin, startName, endName, time) {
         let lemin = document.getElementById(nameLemin)
         let startFound = rooms.find(room => room.name === startName)
         let endFound = rooms.find(room => room.name === endName)
 
-        let steps = 100;
-        let timelapse = TIME_STEP / steps;
+        let timelapse = TIME_STEP / STEPS;
         let x = startFound.x;
         let y = startFound.y;
 
-        let rangeX = Math.abs(endFound.x - startFound.x) / steps
-        let rangeY = Math.abs(endFound.y - startFound.y) / steps
-    
-        let step = 0
+        let rangeX = Math.abs(endFound.x - startFound.x) / STEPS
+        let rangeY = Math.abs(endFound.y - startFound.y) / STEPS
 
-        for (let i = 0; i < steps; i++) {
+        for (let i = 0; i < STEPS; i++) {
             time = time + timelapse
-            setTimeout(() => {
+            let timeout = setTimeout(() => {
                 if (endFound.y === startFound.y) {
                     y = startFound.y
                     x = endFound.x > startFound.x ? x = x + rangeX : x = x - rangeX
@@ -283,13 +197,14 @@
                     y = (x - startFound.x) * FACTOR + startFound.y;
                     x = endFound.x > startFound.x ? x = x + rangeX : x = x - rangeX
                 }
-                if (i === steps - 1) {
+                if (i === STEPS - 1) {
                    x = endFound.x
                    y = endFound.y
                 }
-                lemin.setAttribute('cx', x * X_FACTOR);
-                lemin.setAttribute('cy', y * Y_FACTOR);
+                lemin.setAttribute('cx', x * X_FACTOR + SVG_OFFSET);
+                lemin.setAttribute('cy', y * Y_FACTOR + SVG_OFFSET);
             }, time)
+            timeouts.push(timeout)
         }
     }
 
@@ -299,17 +214,26 @@
     function RESET_LEMIN() {
         lemins.forEach(lemin => {
             let node = document.getElementById(lemin.name)
-            node.remove()
+            if (node) {
+                node.remove()
+            }
         })
         lemins = []
         step = 0
     }
 
-    const newResults = []
-    results.forEach(res => newResults.push(res.split(' ')))
+    function SET_TIME_STEPS() {
+        let timeStepHTML = document.getElementById('time-step')
+        TIME_STEP = timeStepHTML.value > 10 && timeStepHTML.value < 3000 ? timeStepHTML.value : 1000
+
+        let stepsHTML = document.getElementById('steps')
+        STEPS = stepsHTML.value > 50 && stepsHTML.value < 500 ? stepsHTML.value : 50
+    }
 
     function START_LEMIN() {
         RESET_LEMIN()
+        CLEAR_TIMEOUTS()
+        SET_TIME_STEPS()
         newResults.forEach(positions => {
             step++;
             positions.forEach(pos => {
@@ -330,32 +254,28 @@
             })
         })
     }
-
-    DRAW_MAP()
-
 </script>
 
 <style>
     body { 
         background: #000;
+        color: #fff;
+        padding: 20px 50px;
+    }
+    .main {
+        background: #000;
         display: flex;
-        justify-content: center;
-        align-items: center;
+        justify-content: flex-start;
     }
     #container {
         margin-top: 50px;
         border: 1px solid #fff;
     }
     .stats {
-        color: #fff;
-        padding: 50px;
-        max-width: 300px;
-    }
-    .results {
-        word-break: break-all;
+        padding: 20px 0;
     }
     .controls {
-        padding: 50px;
+        margin: 300px 50px 0;
     }
     .controls .btn {
         display: block;
@@ -369,5 +289,8 @@
     .controls .btn:hover {
         background: #fff;
         color: #000;
+    }
+    .controls input {
+        display: block;
     }
 </style>
